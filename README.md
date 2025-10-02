@@ -120,23 +120,43 @@ Users appreciate release notes as you update your extension.
 
 ---
 
-## Following extension guidelines
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+---
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+## IDE Features
 
-## Working with Markdown
+- **Project Explorer:** Organize robot projects, files, and folders visually
+- **Multi-File Editing:** Edit multiple robot programs side-by-side
+- **Integrated Terminal:** Run robot scripts, build, and test from within VS Code
+- **Live Log Viewer:** Stream robot logs and diagnostics in real time
+- **Robot Dashboard:** Visualize robot status, positions, and errors
+- **Device Manager:** Add, remove, and configure robot controllers and peripherals
+- **Simulation Mode:** Preview robot motion and program execution in a virtual environment
+- **Remote Debugging:** Set breakpoints, inspect variables, and step through code on real robots
+- **Version Control Integration:** Git support for robot code, with diff and history
+- **Customizable Themes:** Light/dark mode, accent colors, and layout options
+- **Plugin System:** Extend RoboCode with custom plugins for new robot brands and protocols
+- **Auto-Documentation:** Generate and preview documentation for robot programs
+- **Code Review Tools:** Comment, annotate, and approve robot code changes
+- **Task Automation:** Build, deploy, and test robot code with one click
+- **Cloud Sync:** Save and share robot projects securely across devices
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+---
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+## More Resources
 
-## For more information
+- [Robot Communication Protocol](src/robot_protocol.md)
+- [C++ Example](src/robot_comm.cpp)
+- [Python Example](src/robot_comm.py)
+- [KUKA KRL Sample](sample_robot_pick_place.src)
+- [ABB RAPID Sample](sample_abb_welding.mod)
+- [FANUC AS Sample](sample_fanuc_assembly.ls)
+- [Demo: Box Folds](demo_box_folds.src)
+- [Advanced Folding](sample_with_folds.src)
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+---
 
-**Enjoy!**
+<p align="center" style="color:#888;font-size:13px;">
+  RoboCode is an open, extensible platform for industrial robot programming.<br/>
+  <b>Not affiliated with KUKA, ABB, FANUC, or any robot manufacturer.</b>
+</p>
