@@ -128,6 +128,16 @@
           "type": "boolean",
           "default": true,
           "description": "Uppercase KRL keywords and motion/motion-related commands (DEF, END, PTP, LIN, IF, FOR, etc.)."
+        },
+        "robocode.display.boxFolds": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display FOLD regions as visual boxes with borders and background colors."
+        },
+        "robocode.display.boxFoldColor": {
+          "type": "string",
+          "default": "#4CAF50",
+          "description": "Color for the fold box borders and accents (hex color)."
         }
       }
     },

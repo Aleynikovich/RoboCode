@@ -19,22 +19,22 @@ work_pos = {X 400.0, Y 200.0, Z 150.0, A 0.0, B 90.0, C 0.0}
   ; Main processing loop
   FOR i = 1 TO 10
     
-    ; FOLD Movement Sequence
-    ;FOLD Parameters ;%{h}
-    ; These hidden parameters should not be visible
-    ;%{h} VEL=100 %
-    ; ENDFOLD
-    
-    PTP home_pos VEL=100 % DEFAULT
-    PTP work_pos VEL=50 % FINE
-    
-    ; FOLD Process Step
-    ; Perform work at position
-    $OUT[1] = TRUE
-    WAIT SEC 1.0
-    $OUT[1] = FALSE
-    ; ENDFOLD
-    
+    ; FOLD Movement Sequence VEL=100% DEFAULT
+      ;FOLD Parameters ;%{h}
+      ; These hidden parameters should not be visible
+      ;%{h} VEL=100 %
+      ; ENDFOLD
+      
+      PTP home_pos VEL=100 % DEFAULT
+      PTP work_pos VEL=50 % FINE
+      
+      ; FOLD Process Step
+        ; Perform work at position
+        $OUT[1] = TRUE
+        WAIT SEC 1.0
+        $OUT[1] = FALSE
+      ; ENDFOLD
+      
     ; ENDFOLD Movement Sequence
     
   ENDFOR

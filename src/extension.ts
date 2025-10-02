@@ -259,9 +259,8 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}
 
-	// Decorations for hiding special comments and FOLD markers
+	// Decorations for box-style folding
 	let hiddenCommentDecoration: vscode.TextEditorDecorationType | undefined;
-	let foldMarkerDecoration: vscode.TextEditorDecorationType | undefined;
 	
 	if (!hiddenCommentDecoration) {
 		hiddenCommentDecoration = vscode.window.createTextEditorDecorationType({
@@ -269,30 +268,160 @@ export function activate(context: vscode.ExtensionContext) {
 			textDecoration: 'none; font-size: 0px; line-height: 0;'
 		});
 	}
-	
-	if (!foldMarkerDecoration) {
-		foldMarkerDecoration = vscode.window.createTextEditorDecorationType({
-			opacity: '0',
-			textDecoration: 'none; font-size: 0px;'
-		});
+
+	function createBoxDecorations() {
+		const config = vscode.workspace.getConfiguration('robocode.display');
+		const useBoxFolds = config.get<boolean>('boxFolds', true);
+		const boxColor = config.get<string>('boxFoldColor', '#4CAF50');
+		
+		if (!useBoxFolds) {
+			// Use simple styling if box folds are disabled
+			return {
+				header: vscode.window.createTextEditorDecorationType({
+					fontWeight: 'bold',
+					color: boxColor
+				}),
+				content: vscode.window.createTextEditorDecorationType({
+					backgroundColor: 'rgba(128, 128, 128, 0.05)'
+				}),
+				footer: vscode.window.createTextEditorDecorationType({
+					opacity: '0.6',
+					fontStyle: 'italic'
+				})
+			};
+		}
+
+		// Box-style decorations
+		return {
+			header: vscode.window.createTextEditorDecorationType({
+				backgroundColor: `${boxColor}20`, // 20 = 12.5% opacity in hex
+				fontWeight: 'bold',
+				color: boxColor.replace('#', '#2E'), // Darker version
+				border: `2px solid ${boxColor}`,
+				borderRadius: '6px 6px 0 0',
+				before: {
+					contentText: '📦 ',
+					color: boxColor,
+					fontWeight: 'bold'
+				},
+				after: {
+					contentText: ' ▼',
+					color: boxColor,
+					margin: '0 0 0 8px'
+				}
+			}),
+			content: vscode.window.createTextEditorDecorationType({
+				backgroundColor: `${boxColor}0D`, // 0D = 5% opacity in hex
+				outline: `2px solid ${boxColor}`
+			}),
+			footer: vscode.window.createTextEditorDecorationType({
+				backgroundColor: `${boxColor}1A`, // 1A = 10% opacity in hex
+				color: '#666666',
+				fontStyle: 'italic',
+				opacity: '0.7',
+				border: `2px solid ${boxColor}`,
+				borderRadius: '0 0 6px 6px',
+				before: {
+					contentText: '└─ ',
+					color: boxColor
+				}
+			})
+		};
 	}
 
-	// Folding Range Provider to hide FOLD markers when collapsed
+	function refreshEnfoldDecorations(editor: vscode.TextEditor) {
+		if (editor.document.languageId !== 'krl') { return; }
+		
+		// Create decorations based on current settings
+		const decorations = createBoxDecorations();
+		
+		const hiddenCommentRanges: vscode.Range[] = [];
+		const foldHeaderRanges: vscode.Range[] = [];
+		const foldContentRanges: vscode.Range[] = [];
+		const foldFooterRanges: vscode.Range[] = [];
+
+		// Find all FOLD regions and their ranges
+		const foldRegions: { start: number; end: number; level: number; title: string }[] = [];
+		const stack: { line: number; level: number; title: string }[] = [];
+		let currentLevel = 0;
+
+		for (let i = 0; i < editor.document.lineCount; i++) {
+			const line = editor.document.lineAt(i);
+			const text = line.text;
+			
+			// Hide special comments
+			if (/^\s*;\s*%\{[^}]*\}\s*$/.test(text) || 
+			    /^\s*DEFAULT\s*;\s*%\{PE\}\s*$/.test(text) ||
+			    /^\s*;%\{PE\}\s*$/.test(text)) {
+				hiddenCommentRanges.push(new vscode.Range(i, 0, i, text.length));
+			}
+
+			if (FOLD_START.test(text)) {
+				const titleMatch = text.match(/;\s*FOLD\s+(.+)/i);
+				const title = titleMatch ? titleMatch[1].trim() : 'Code Block';
+				stack.push({ line: i, level: currentLevel, title });
+				currentLevel++;
+			} else if (FOLD_END.test(text)) {
+				const start = stack.pop();
+				if (start) {
+					currentLevel--;
+					foldRegions.push({ 
+						start: start.line, 
+						end: i, 
+						level: start.level,
+						title: start.title
+					});
+				}
+			}
+		}
+
+		// Apply box decorations to each fold region
+		for (const region of foldRegions) {
+			const startLine = editor.document.lineAt(region.start);
+			const endLine = editor.document.lineAt(region.end);
+			
+			// FOLD header line (top of box with title and icon)
+			foldHeaderRanges.push(new vscode.Range(region.start, 0, region.start, startLine.text.length));
+			
+			// Content lines (body of the box)
+			for (let i = region.start + 1; i < region.end; i++) {
+				const contentLine = editor.document.lineAt(i);
+				foldContentRanges.push(new vscode.Range(i, 0, i, contentLine.text.length));
+			}
+			
+			// ENDFOLD line (footer of the box)
+			foldFooterRanges.push(new vscode.Range(region.end, 0, region.end, endLine.text.length));
+		}
+		
+		// Apply decorations
+		editor.setDecorations(hiddenCommentDecoration!, hiddenCommentRanges);
+		editor.setDecorations(decorations.header, foldHeaderRanges);
+		editor.setDecorations(decorations.content, foldContentRanges);
+		editor.setDecorations(decorations.footer, foldFooterRanges);
+	}	// Folding Range Provider with custom display behavior
 	const foldingProvider = vscode.languages.registerFoldingRangeProvider('krl', {
 		provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {
 			const ranges: vscode.FoldingRange[] = [];
-			const stack: { line: number; kind?: vscode.FoldingRangeKind }[] = [];
+			const stack: { line: number; indent: string }[] = [];
 			
 			for (let i = 0; i < document.lineCount; i++) {
 				const lineText = document.lineAt(i).text;
 				
 				if (FOLD_START.test(lineText)) {
-					stack.push({ line: i, kind: vscode.FoldingRangeKind.Region });
+					// Extract indentation for proper nesting display
+					const indentMatch = lineText.match(/^(\s*)/);
+					const indent = indentMatch ? indentMatch[1] : '';
+					stack.push({ line: i, indent });
 				} else if (FOLD_END.test(lineText)) {
 					const start = stack.pop();
 					if (start) {
-						// Create range that hides the start and end markers
-						ranges.push(new vscode.FoldingRange(start.line, i, start.kind));
+						// Create folding range
+						const range = new vscode.FoldingRange(
+							start.line, 
+							i, 
+							vscode.FoldingRangeKind.Region
+						);
+						ranges.push(range);
 					}
 				}
 			}
@@ -300,50 +429,6 @@ export function activate(context: vscode.ExtensionContext) {
 			return ranges;
 		}
 	});
-
-	function refreshEnfoldDecorations(editor: vscode.TextEditor) {
-		if (editor.document.languageId !== 'krl') { return; }
-		
-		const enfoldRanges: vscode.Range[] = [];
-		const hiddenCommentRanges: vscode.Range[] = [];
-		const foldMarkerRanges: vscode.Range[] = [];
-		
-		// Get folded ranges to determine which FOLD markers to hide
-		const foldedRanges = editor.visibleRanges;
-		const isLineFolded = (lineNumber: number): boolean => {
-			return foldedRanges.some(range => 
-				lineNumber < range.start.line || lineNumber > range.end.line
-			);
-		};
-		
-		for (let i = 0; i < editor.document.lineCount; i++) {
-			const line = editor.document.lineAt(i);
-			const text = line.text;
-			
-			// Hide ENDFOLD lines (dim them)
-			if (FOLD_END.test(text)) {
-				enfoldRanges.push(new vscode.Range(i, 0, i, text.length));
-			}
-			
-			// Hide special comments: ;%{PE}, ;%{h}..., DEFAULT ;%{PE}
-			if (/;\s*%\{[^}]*\}/.test(text) || /DEFAULT\s*;\s*%\{PE\}/.test(text)) {
-				hiddenCommentRanges.push(new vscode.Range(i, 0, i, text.length));
-			}
-			
-			// Hide FOLD markers when their region is collapsed
-			if (FOLD_START.test(text) && isLineFolded(i + 1)) {
-				// Only hide the FOLD marker part, keep the description
-				const match = text.match(/^(\s*;\s*FOLD\s*)(.*)/i);
-				if (match) {
-					foldMarkerRanges.push(new vscode.Range(i, 0, i, match[1].length));
-				}
-			}
-		}
-		
-		editor.setDecorations(enfoldDecoration!, enfoldRanges);
-		editor.setDecorations(hiddenCommentDecoration!, hiddenCommentRanges);
-		editor.setDecorations(foldMarkerDecoration!, foldMarkerRanges);
-	}
 
 	// Outline (DocumentSymbol) provider for FOLD regions & DEF
 	const symbolProvider = vscode.languages.registerDocumentSymbolProvider('krl', {

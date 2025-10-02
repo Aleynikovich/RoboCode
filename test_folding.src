@@ -1,0 +1,36 @@
+&ACCESS RVP
+&REL 1
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vorgabe
+&PARAM EDITMASK = *
+
+DEF sample_test_folding()
+
+; FOLD INI;%{PE}
+  DEFAULT ;%{PE}
+  ;%{PE}
+  ; Initialization section
+  DECL POS home_pos
+  home_pos = {X 600.0, Y 0.0, Z 600.0, A 0.0, B 0.0, C 0.0}
+; ENDFOLD
+
+; FOLD Main Program
+  ; Main processing
+  FOR i = 1 TO 5
+    
+    ; FOLD Movement Sequence VEL=100% DEFAULT
+      ; Movement parameters and execution
+      PTP home_pos VEL=100 % DEFAULT
+      
+      ; FOLD Nested Operation
+        ; Nested fold content
+        $OUT[1] = TRUE
+        WAIT SEC 1.0
+        $OUT[1] = FALSE
+      ; ENDFOLD
+      
+    ; ENDFOLD
+    
+  ENDFOR
+; ENDFOLD
+
+END
