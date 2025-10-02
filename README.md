@@ -1,37 +1,34 @@
 
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Aleynikovich/RoboCode/main/.github/robocode-logo.svg" width="120" alt="RoboCode Logo"/>
+  <img src="https://raw.githubusercontent.com/Aleynikovich/RoboCode/main/.github/robocode-logo.png" width="120" alt="RoboCode Logo"/>
 </p>
 
 # RoboCode VS Code Extension
 
 <p align="center">
   <b>Universal Industrial Robot Programming Suite</b><br/>
-  <svg width="18" height="18"><rect width="18" height="18" fill="#f90"/></svg> <b>KUKA</b>
-  <svg width="18" height="18"><rect width="18" height="18" fill="#e00"/></svg> <b>ABB</b>
-  <svg width="18" height="18"><rect width="18" height="18" fill="#ff0"/></svg> <b>FANUC</b>
-  <svg width="18" height="18"><rect width="18" height="18" fill="#0af"/></svg> <b>CNC</b>
-  <svg width="18" height="18"><rect width="18" height="18" fill="#0c0"/></svg> <b>RoboDK</b>
+  <b>KUKA</b> | <b>ABB</b> | <b>FANUC</b> | <b>CNC</b> | <b>RoboDK</b> | <b>Dobot</b>
 </p>
 
 ---
 
-## <svg width="18" height="18"><rect width="18" height="18" fill="#4CAF50"/></svg> Features
+## Features
 
-- <b>Multi-Brand Support:</b> KUKA, ABB, FANUC, CNC, RoboDK, Dobot, and more
-- <b>Live Robot Connection:</b> Connect, monitor, and control robots via TCP/IP (simulated protocol)
-- <b>Program Upload:</b> Upload and manage robot programs directly from VS Code
-- <b>Syntax Highlighting:</b> Full support for KRL, RAPID, FANUC AS, G-code, and more
-- <b>Box-Style Folding:</b> Clean, modern code folding with visual boxes for FOLD regions
-- <b>IntelliSense:</b> Smart code completion for robot commands and parameters
-- <b>Diagnostics:</b> Real-time error checking for unmatched FOLD/ENDFOLD, syntax, and connection issues
-- <b>Document Outline:</b> Symbol navigation for DEF, PROC, FOLD, and more
-- <b>Snippets:</b> Quick templates for common robot tasks
-- <b>Simulated Communication Protocols:</b> C++ and Python examples for robot connectivity
-- <b>Project Templates:</b> Start new robot projects for any supported brand
-- <b>Debugging:</b> Step through robot code with breakpoints and variable inspection (simulated)
-- <b>Real-Time Status:</b> Monitor robot state and connection health in the status bar
-- <b>Customizable UI:</b> Theme-aware, configurable folding colors and display options
+- **Multi-Brand Support:** KUKA, ABB, FANUC, CNC, RoboDK, Dobot, and more
+- **Live Robot Connection:** Connect, monitor, and control robots via TCP/IP (simulated protocol)
+- **Program Upload:** Upload and manage robot programs directly from VS Code
+- **Syntax Highlighting:** Full support for KRL, RAPID, FANUC AS, G-code, and more
+- **Box-Style Folding:** Clean, modern code folding with visual boxes for FOLD regions
+- **IntelliSense:** Smart code completion for robot commands and parameters
+- **Diagnostics:** Real-time error checking for unmatched FOLD/ENDFOLD, syntax, and connection issues
+- **Document Outline:** Symbol navigation for DEF, PROC, FOLD, and more
+- **Snippets:** Quick templates for common robot tasks
+- **Simulated Communication Protocols:** C++ and Python examples for robot connectivity
+- **Project Templates:** Start new robot projects for any supported brand
+- **Debugging:** Step through robot code with breakpoints and variable inspection (simulated)
+- **Real-Time Status:** Monitor robot state and connection health in the status bar
+- **Customizable UI:** Theme-aware, configurable folding colors and display options
 
 ## Box-Style Folding
 
@@ -105,17 +102,21 @@ The extension includes sample files to test functionality:
 
 Users appreciate release notes as you update your extension.
 
-### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
+### 1.2.0
+- Multi-brand robot support: KUKA, ABB, FANUC, CNC, RoboDK, Dobot
+- Simulated robot connection and upload
+- Enhanced box-style folding visuals
+- C++/Python protocol examples
+- Improved IntelliSense and diagnostics
 
 ### 1.1.0
+- Box-style folding for KUKA KRL
+- IntelliSense for KUKA commands
+- Robot status bar integration
 
-Added features X, Y, and Z.
+### 1.0.0
+- Initial release: KUKA KRL folding, syntax, and snippets
 
 ---
 
