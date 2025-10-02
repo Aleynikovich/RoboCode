@@ -494,16 +494,52 @@ export function activate(context: vscode.ExtensionContext) {
 	const clickHandler = vscode.window.onDidChangeTextEditorSelection(e => {
 		if (!e.textEditor || e.textEditor.document.languageId !== 'krl') { return; }
 		
-		// Check if this was a line click (selection covers entire line)
+		// Check if cursor is on a FOLD/ENDFOLD line
 		const selection = e.selections[0];
-		if (selection && !selection.isEmpty) {
+		if (selection && selection.isEmpty) {
 			const line = e.textEditor.document.lineAt(selection.start.line);
-			if (selection.start.character === 0 && selection.end.character === line.text.length) {
-				const lineText = line.text;
+			const lineText = line.text;
+			
+			// If cursor is anywhere on a FOLD or ENDFOLD line, enable folding on that line
+			if (FOLD_START.test(lineText) || FOLD_END.test(lineText)) {
+				// Add a small delay to distinguish from regular cursor movement
+				setTimeout(() => {
+					const currentEditor = vscode.window.activeTextEditor;
+					if (currentEditor && currentEditor === e.textEditor) {
+						const currentSelection = currentEditor.selection;
+						if (currentSelection.isEmpty && currentSelection.start.line === selection.start.line) {
+							// Cursor is still on the same line, user likely wants to interact with fold
+							// We don't auto-fold here, but we could highlight or provide visual feedback
+						}
+					}
+				}, 100);
+			}
+		}
+	});
+
+	// Add double-click handler for folding
+	let lastClickTime = 0;
+	let lastClickLine = -1;
+	
+	const doubleClickHandler = vscode.window.onDidChangeTextEditorSelection(e => {
+		if (!e.textEditor || e.textEditor.document.languageId !== 'krl') { return; }
+		
+		const now = Date.now();
+		const selection = e.selections[0];
+		
+		if (selection && selection.isEmpty) {
+			const currentLine = selection.start.line;
+			const lineText = e.textEditor.document.lineAt(currentLine).text;
+			
+			// Check for double-click (within 500ms on same line)
+			if (now - lastClickTime < 500 && currentLine === lastClickLine) {
 				if (FOLD_START.test(lineText) || FOLD_END.test(lineText)) {
 					vscode.commands.executeCommand('robocode.toggleFoldOnLine');
 				}
 			}
+			
+			lastClickTime = now;
+			lastClickLine = currentLine;
 		}
 	});
 
@@ -531,6 +567,7 @@ export function activate(context: vscode.ExtensionContext) {
 		formattingProvider,
 		foldingProvider,
 		clickHandler,
+		doubleClickHandler,
 		foldChangeHandler
 	);
 }

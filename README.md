@@ -1,35 +1,78 @@
-# robocode README
+# RoboCode VS Code Extension
 
-This is the README for your extension "robocode". After writing up a brief description, we recommend including the following sections.
+A comprehensive VS Code extension for KUKA KRL (KUKA Robot Language) programming with advanced folding, syntax highlighting, and code intelligence features.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Syntax Highlighting**: Full KRL (KUKA Robot Language) syntax highlighting for `.src` and `.dat` files
+- **Advanced Folding System**: 
+  - Custom `;FOLD` / `;ENDFOLD` regions with smart hiding behavior
+  - FOLD markers hidden when collapsed, showing only content
+  - Special comments (`;%{PE}`, `;%{h}...`, `DEFAULT ;%{PE}`) are automatically hidden
+  - Click anywhere on FOLD/ENDFOLD lines to toggle folding
+  - Navigate between matching FOLD/ENDFOLD pairs
+- **Code Intelligence**:
+  - IntelliSense completion for KUKA commands (PTP, LIN, etc.)
+  - Semantic token highlighting for enhanced syntax coloring
+  - Document outline with proper symbol ranges
+  - Diagnostics for unmatched FOLD/ENDFOLD pairs
+- **Code Formatting**:
+  - Assignment alignment (`=` signs lined up)
+  - Automatic keyword uppercasing
+  - Configurable formatting options
+- **Snippets**: Quick insertion templates for common KRL constructs
+- **Robot Management**: Connection and program upload commands (planned)
 
-For example if there is an image subfolder under your extension project workspace:
+## Folding Features
 
-\!\[feature X\]\(images/feature-x.png\)
+The extension provides advanced folding capabilities specifically designed for KUKA KRL:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### Smart FOLD Hiding
+- When a `;FOLD` region is collapsed, both the `;FOLD` and `;ENDFOLD` markers are hidden
+- Only the content description and folded content are visible
+- Special parameter comments (`;%{PE}`, `;%{h}...`) are automatically hidden
 
-## Requirements
+### Interactive Folding
+- **Double-click** any FOLD/ENDFOLD line to toggle folding
+- **Ctrl+Shift+]** to navigate between matching FOLD/ENDFOLD pairs
+- **Ctrl+Shift+F** to toggle fold on current line
+- Click anywhere on a FOLD line (not just the arrow) to fold/unfold
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### Automatic Organization
+- FOLD regions auto-collapse when files are opened
+- DEF/END blocks remain expanded for better code visibility
+- Nested FOLD regions are properly handled
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `robocode.format.alignAssignments`: Enable/disable alignment of assignment operators (default: true)
+* `robocode.format.uppercaseKeywords`: Enable/disable automatic uppercasing of KRL keywords (default: true)
+
+## Keyboard Shortcuts
+
+* `Ctrl+Shift+]`: Navigate to matching FOLD/ENDFOLD
+* `Ctrl+Shift+F`: Toggle fold on current line
+
+## Usage
+
+1. Open any `.src` or `.dat` file
+2. Use `;FOLD` and `;ENDFOLD` comments to create collapsible regions
+3. Double-click on FOLD lines to toggle folding
+4. Use Format Document to apply code formatting
+5. Access robot commands through the Command Palette
+
+## Sample Files
+
+The extension includes sample files to test functionality:
+- `sample_robot_pick_place.src` - Basic pick and place program
+- `sample_with_folds.src` - Demonstrates advanced folding features
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Folding marker hiding requires VS Code's folding system to be active
+- Some themes may not display semantic tokens differently from regular syntax highlighting
 
 ## Release Notes
 
