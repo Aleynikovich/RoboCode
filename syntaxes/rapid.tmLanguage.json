@@ -1,0 +1,75 @@
+{
+    "name": "ABB RAPID",
+    "scopeName": "source.rapid",
+    "fileTypes": ["mod", "sys"],
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.exclamation.rapid",
+                    "match": "!.*$"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.rapid",
+                    "match": "\\b(PROC|FUNC|ENDPROC|ENDFUNC|IF|ELSE|ELSEIF|ENDIF|FOR|TO|STEP|ENDFOR|WHILE|ENDWHILE|TEST|CASE|DEFAULT|ENDTEST|GOTO|STOP|EXIT|RETURN)\\b"
+                },
+                {
+                    "name": "keyword.other.rapid",
+                    "match": "\\b(MoveJ|MoveL|MoveC|MoveAbsJ|num|bool|string|robtarget|jointtarget|speeddata|zonedata|tooldata|wobjdata)\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.rapid",
+                    "match": "\\b[A-Za-z][A-Za-z0-9_]*\\s*(?=\\()"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.rapid",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.rapid",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.rapid",
+                    "match": "\\b\\d+(\\.\\d+)?\\b"
+                }
+            ]
+        }
+    }
+}

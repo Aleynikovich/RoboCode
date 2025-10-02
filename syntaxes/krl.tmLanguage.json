@@ -1,0 +1,75 @@
+{
+    "name": "KUKA Robot Language",
+    "scopeName": "source.krl",
+    "fileTypes": ["src", "dat"],
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.semicolon.krl",
+                    "match": ";.*$"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.krl",
+                    "match": "\\b(DEF|END|DEFFCT|DEFDAT|IF|ELSE|ENDIF|FOR|TO|ENDFOR|WHILE|ENDWHILE|REPEAT|UNTIL|SWITCH|CASE|DEFAULT|ENDSWITCH|GOTO|HALT|WAIT)\\b"
+                },
+                {
+                    "name": "keyword.other.krl",
+                    "match": "\\b(PTP|LIN|CIRC|SPLINE|BAS|REAL|INT|BOOL|CHAR|ENUM|STRUC)\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.krl",
+                    "match": "\\b[A-Z][A-Z0-9_]*\\s*(?=\\()"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.krl",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.krl",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.krl",
+                    "match": "\\b\\d+(\\.\\d+)?\\b"
+                }
+            ]
+        }
+    }
+}

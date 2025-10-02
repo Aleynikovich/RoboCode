@@ -1,0 +1,75 @@
+{
+    "name": "FANUC AS",
+    "scopeName": "source.as",
+    "fileTypes": ["ls", "tp"],
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.exclamation.as",
+                    "match": "!.*$"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.as",
+                    "match": "\\b(IF|ELSE|ENDIF|FOR|TO|ENDFOR|WHILE|ENDWHILE|SELECT|CASE|ENDSELECT|JMP|LBL|CALL|END)\\b"
+                },
+                {
+                    "name": "keyword.other.as",
+                    "match": "\\b(J|L|C|A|P|R|UTOOL_NUM|UFRAME_NUM|SPEED|CNT|FINE|AP_LD|Offset|PAYLOAD)\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.as",
+                    "match": "\\b[A-Za-z][A-Za-z0-9_]*\\s*(?=\\()"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.single.as",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.as",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.as",
+                    "match": "\\b\\d+(\\.\\d+)?\\b"
+                }
+            ]
+        }
+    }
+}

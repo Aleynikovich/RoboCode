@@ -8,9 +8,9 @@ This workspace contains a VS Code extension for managing and coding industrial r
 - [x] Clarify Project Requirements
 - [x] Scaffold the Project
 - [x] Customize the Project
-- [ ] Install Required Extensions
-- [ ] Compile the Project
-- [ ] Create and Run Task
+- [x] Install Required Extensions
+- [x] Compile the Project
+- [x] Create and Run Task
 - [ ] Launch the Project
 - [ ] Ensure Documentation is Complete
 
