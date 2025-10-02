@@ -165,7 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Diagnostics for unmatched FOLD/ENDFOLD
 	function validateFolds(doc: vscode.TextDocument) {
-		if (doc.languageId !== 'krl') return;
+		if (doc.languageId !== 'krl') { return; }
 		const diagnostics: vscode.Diagnostic[] = [];
 		const stack: number[] = [];
 		for (let i = 0; i < doc.lineCount; i++) {
@@ -181,8 +181,6 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 		while (stack.length) {
-		semanticProvider,
-		formattingProvider
 			const startLine = stack.pop()!;
 			const lineText = doc.lineAt(startLine).text;
 			diagnostics.push(new vscode.Diagnostic(new vscode.Range(startLine, 0, startLine, lineText.length), 'FOLD without matching ENDFOLD', vscode.DiagnosticSeverity.Warning));
@@ -198,7 +196,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}
 	function refreshEnfoldDecorations(editor: vscode.TextEditor) {
-		if (editor.document.languageId !== 'krl') return;
+		if (editor.document.languageId !== 'krl') { return; }
 		const ranges: vscode.Range[] = [];
 		for (let i = 0; i < editor.document.lineCount; i++) {
 			const line = editor.document.lineAt(i);
@@ -213,18 +211,115 @@ export function activate(context: vscode.ExtensionContext) {
 	const symbolProvider = vscode.languages.registerDocumentSymbolProvider('krl', {
 		provideDocumentSymbols(doc: vscode.TextDocument): vscode.DocumentSymbol[] {
 			const symbols: vscode.DocumentSymbol[] = [];
-			for (let i = 0; i < doc.lineCount; i++) {
+			// Pre-scan for FOLD ranges using a stack
+			const foldRanges: { start: number; end: number; desc: string }[] = [];
+			const stack: { line: number; desc: string }[] = [];
+			for (let i=0;i<doc.lineCount;i++) {
+				const lineText = doc.lineAt(i).text;
+				if (FOLD_START.test(lineText)) {
+					const desc = lineText.replace(/^[;\s]*FOLD\s*/i,'').trim();
+					stack.push({ line: i, desc: desc || 'Fold Region' });
+				} else if (FOLD_END.test(lineText)) {
+					const open = stack.pop();
+					if (open) {
+						foldRanges.push({ start: open.line, end: i, desc: open.desc });
+					}
+				}
+			}
+			// DEF symbol detection: range until matching END on its own line or file end
+			for (let i=0;i<doc.lineCount;i++) {
 				const text = doc.lineAt(i).text;
 				if (/^\s*DEF\b/i.test(text)) {
 					const nameMatch = text.match(/^\s*DEF\s+([A-Za-z0-9_]+)/i);
-					const name = nameMatch ? nameMatch[1] : 'DEF';
-					symbols.push(new vscode.DocumentSymbol(name, 'Program', vscode.SymbolKind.Function, new vscode.Range(i,0,i,text.length), new vscode.Range(i,0,i,text.length)));
-				} else if (FOLD_START.test(text)) {
-					const desc = text.replace(/^[;\s]*FOLD\s*/i, '').trim();
-					symbols.push(new vscode.DocumentSymbol(desc || 'Fold Region', 'Region', vscode.SymbolKind.Namespace, new vscode.Range(i,0,i,text.length), new vscode.Range(i,0,i,text.length)));
+					const name = nameMatch ? nameMatch[1] : 'Program';
+					let endLine = i;
+					for (let j=i+1;j<doc.lineCount;j++) {
+						if (/^\s*END\b/i.test(doc.lineAt(j).text)) { endLine = j; break; }
+					}
+					symbols.push(new vscode.DocumentSymbol(name, 'Program', vscode.SymbolKind.Function, new vscode.Range(i,0,endLine, doc.lineAt(endLine).text.length), new vscode.Range(i,0,i,text.length)));
 				}
 			}
+			for (const fr of foldRanges) {
+				const startText = doc.lineAt(fr.start).text;
+				symbols.push(new vscode.DocumentSymbol(fr.desc, 'Region', vscode.SymbolKind.Namespace, new vscode.Range(fr.start,0,fr.end, doc.lineAt(fr.end).text.length), new vscode.Range(fr.start,0,fr.start,startText.length)));
+			}
 			return symbols;
+		}
+	});
+
+	// Semantic Tokens Provider (enhanced coloring)
+	const tokenTypes: string[] = ['keyword','function','type','property','enumMember'];
+	const legend = new vscode.SemanticTokensLegend(tokenTypes, []);
+	const motionCmds = /\b(PTP|LIN|CIRC|SPLINE|SLIN|SPTP|BAS)\b/g;
+	const controlKeywords = /\b(IF|THEN|ELSE|ENDIF|FOR|ENDFOR|WHILE|ENDWHILE|REPEAT|UNTIL|SWITCH|CASE|DEFAULT|GOTO|HALT|WAIT|RETURN)\b/g;
+	const typesRe = /\b(INT|REAL|BOOL|CHAR|ENUM|STRUC)\b/g;
+	const enumConst = /\b(TRUE|FALSE)\b/g;
+	const ioVar = /\$[A-Z][A-Z0-9_\[\]]*/g;
+
+	function classify(line: string) {
+		const out: { start:number; length:number; type:string }[] = [];
+		function collect(re: RegExp, type: string) {
+			re.lastIndex = 0;
+			let m: RegExpExecArray | null;
+			while ((m = re.exec(line))) {
+				out.push({ start: m.index, length: m[0].length, type });
+			}
+		}
+		collect(motionCmds, 'function');
+		collect(controlKeywords, 'keyword');
+		collect(typesRe, 'type');
+		collect(enumConst, 'enumMember');
+		collect(ioVar, 'property');
+		return out;
+	}
+
+	const semanticProvider = vscode.languages.registerDocumentSemanticTokensProvider('krl', {
+		provideDocumentSemanticTokens(doc: vscode.TextDocument) {
+			const builder = new vscode.SemanticTokensBuilder(legend);
+			for (let line = 0; line < doc.lineCount; line++) {
+				const text = doc.lineAt(line).text;
+				for (const t of classify(text)) {
+					const idx = tokenTypes.indexOf(t.type);
+					if (idx >= 0) { builder.push(line, t.start, t.length, idx, 0); }
+				}
+			}
+			return builder.build();
+		}
+	}, legend);
+
+	// Formatting Provider
+	const formattingProvider = vscode.languages.registerDocumentFormattingEditProvider('krl', {
+		provideDocumentFormattingEdits(doc: vscode.TextDocument): vscode.TextEdit[] {
+			const cfg = vscode.workspace.getConfiguration('robocode.format');
+			const doAlign = cfg.get<boolean>('alignAssignments', true);
+			const uppercase = cfg.get<boolean>('uppercaseKeywords', true);
+			const assignRegex = /^(\s*[_A-Za-z0-9$\.\[\]]+\s*)=(?!=)/;
+			let maxLeft = 0;
+			const leftMeta: (string|null)[] = [];
+			for (let i=0;i<doc.lineCount;i++) {
+				const line = doc.lineAt(i).text;
+				if (doAlign && assignRegex.test(line)) {
+					const left = assignRegex.exec(line)![1].trim();
+					maxLeft = Math.max(maxLeft, left.length);
+					leftMeta[i] = left;
+				} else {
+					leftMeta[i] = null;
+				}
+			}
+			const keywordSet = /\b(DEF|END|DEFDAT|ENDDAT|IF|THEN|ELSE|ENDIF|FOR|ENDFOR|WHILE|ENDWHILE|REPEAT|UNTIL|SWITCH|CASE|DEFAULT|GOTO|HALT|WAIT|RETURN|PTP|LIN|CIRC|SPLINE|BAS)\b/gi;
+			const newLines: string[] = [];
+			for (let i=0;i<doc.lineCount;i++) {
+				let line = doc.lineAt(i).text;
+				if (leftMeta[i] && doAlign) {
+					const right = line.substring(line.indexOf('=')+1).trim();
+					line = leftMeta[i]!.padEnd(maxLeft, ' ') + ' = ' + right;
+				}
+				if (uppercase) { line = line.replace(keywordSet, m => m.toUpperCase()); }
+				newLines.push(line);
+			}
+			const last = doc.lineCount - 1;
+			const fullRange = new vscode.Range(0,0,last, doc.lineAt(last).text.length);
+			return [vscode.TextEdit.replace(fullRange, newLines.join('\n'))];
 		}
 	});
 
@@ -268,6 +363,8 @@ export function activate(context: vscode.ExtensionContext) {
 		wrapFoldCommand,
 		insertFoldTemplate,
 		symbolProvider
+		,semanticProvider
+		,formattingProvider
 	);
 }
 
