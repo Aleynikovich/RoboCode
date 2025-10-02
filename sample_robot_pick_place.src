@@ -1,0 +1,70 @@
+&ACCESS RVP
+&REL 1
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vorgabe
+&PARAM EDITMASK = *
+
+DEF sample_robot_pick_place()
+
+; Sample KUKA robot program for pick and place operation
+; This demonstrates typical KRL syntax and robot movements
+
+; Variable declarations
+DECL POS home_pos
+DECL POS pick_pos
+DECL POS place_pos
+DECL INT counter
+DECL BOOL gripper_state
+
+; Initialize variables
+counter = 0
+gripper_state = FALSE
+home_pos = {X 600.0, Y 0.0, Z 600.0, A 0.0, B 0.0, C 0.0}
+pick_pos = {X 400.0, Y 200.0, Z 150.0, A 0.0, B 90.0, C 0.0}
+place_pos = {X 400.0, Y -200.0, Z 150.0, A 0.0, B 90.0, C 0.0}
+
+; Main program loop
+FOR counter = 1 TO 5
+  
+  ; Move to home position
+  PTP home_pos VEL=100 % DEFAULT
+  
+  ; Move to pick position
+  PTP pick_pos VEL=50 % FINE
+  
+  ; Approach pick position
+  LIN pick_pos VEL=10 % FINE
+  
+  ; Close gripper
+  gripper_state = TRUE
+  $OUT[1] = gripper_state
+  WAIT SEC 0.5
+  
+  ; Lift part
+  LIN {X 400.0, Y 200.0, Z 250.0, A 0.0, B 90.0, C 0.0} VEL=20 % FINE
+  
+  ; Move to place position (via intermediate point)
+  PTP {X 500.0, Y 0.0, Z 400.0, A 0.0, B 45.0, C 0.0} VEL=75 % DEFAULT
+  
+  ; Approach place position
+  PTP place_pos VEL=50 % FINE
+  LIN place_pos VEL=10 % FINE
+  
+  ; Open gripper
+  gripper_state = FALSE
+  $OUT[1] = gripper_state
+  WAIT SEC 0.5
+  
+  ; Retract
+  LIN {X 400.0, Y -200.0, Z 250.0, A 0.0, B 90.0, C 0.0} VEL=20 % FINE
+  
+  ; Check safety conditions
+  IF $IN[10] == TRUE THEN
+    HALT
+  ENDIF
+  
+ENDFOR
+
+; Return to home
+PTP home_pos VEL=100 % DEFAULT
+
+END

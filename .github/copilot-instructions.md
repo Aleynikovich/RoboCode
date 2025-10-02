@@ -11,8 +11,24 @@ This workspace contains a VS Code extension for managing and coding industrial r
 - [x] Install Required Extensions
 - [x] Compile the Project
 - [x] Create and Run Task
-- [ ] Launch the Project
-- [ ] Ensure Documentation is Complete
+- [x] Launch the Project
+- [x] Ensure Documentation is Complete
+
+## Sample Files Created
+
+The workspace now includes sample robot program files to test the extension:
+
+- `sample_robot_pick_place.src` - KUKA KRL program file with pick and place logic
+- `sample_robot_pick_place.dat` - KUKA KRL data file with positions and configurations  
+- `sample_abb_welding.mod` - ABB RAPID welding program
+- `sample_fanuc_assembly.ls` - FANUC AS assembly program
+
+## Testing the Extension
+
+1. Press F5 to launch the extension in debug mode
+2. Open any of the sample robot files to test syntax highlighting
+3. Try the robot connection commands from the Command Palette (Ctrl+Shift+P)
+4. Test IntelliSense by typing robot commands in the sample files
 
 ## Project Features
 

@@ -1,0 +1,51 @@
+&ACCESS RVP
+&REL 1
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vorgabe
+&PARAM EDITMASK = *
+
+DEFDAT sample_robot_pick_place
+
+; Tool data for gripper
+DECL FRAME TOOL_DATA[1] = {X 0.0, Y 0.0, Z 150.0, A 0.0, B 0.0, C 0.0}
+
+; Base frame data
+DECL FRAME BASE_DATA[1] = {X 0.0, Y 0.0, Z 0.0, A 0.0, B 0.0, C 0.0}
+
+; Workpiece positions
+DECL POS PICK_POINT[10]
+DECL POS PLACE_POINT[10]
+
+; Initialize pick points
+PICK_POINT[1] = {X 400.0, Y 200.0, Z 150.0, A 0.0, B 90.0, C 0.0, S 2, T 35}
+PICK_POINT[2] = {X 420.0, Y 200.0, Z 150.0, A 0.0, B 90.0, C 0.0, S 2, T 35}
+PICK_POINT[3] = {X 440.0, Y 200.0, Z 150.0, A 0.0, B 90.0, C 0.0, S 2, T 35}
+
+; Initialize place points
+PLACE_POINT[1] = {X 400.0, Y -200.0, Z 150.0, A 0.0, B 90.0, C 0.0, S 2, T 35}
+PLACE_POINT[2] = {X 420.0, Y -200.0, Z 150.0, A 0.0, B 90.0, C 0.0, S 2, T 35}
+PLACE_POINT[3] = {X 440.0, Y -200.0, Z 150.0, A 0.0, B 90.0, C 0.0, S 2, T 35}
+
+; Speed and zone data
+DECL REAL VEL_FAST = 100.0
+DECL REAL VEL_MEDIUM = 50.0
+DECL REAL VEL_SLOW = 10.0
+
+; Safety zone limits
+DECL REAL X_MIN = -1000.0
+DECL REAL X_MAX = 1000.0
+DECL REAL Y_MIN = -1000.0
+DECL REAL Y_MAX = 1000.0
+DECL REAL Z_MIN = 0.0
+DECL REAL Z_MAX = 2000.0
+
+; Gripper configuration
+DECL INT GRIPPER_OPEN_OUTPUT = 1
+DECL INT GRIPPER_CLOSE_OUTPUT = 2
+DECL INT PART_DETECT_INPUT = 10
+DECL INT SAFETY_STOP_INPUT = 11
+
+; Timer values
+DECL REAL GRIPPER_DELAY = 0.5
+DECL REAL SETTLE_TIME = 0.2
+
+ENDDAT
