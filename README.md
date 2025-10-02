@@ -1,27 +1,52 @@
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Aleynikovich/RoboCode/main/.github/robocode-logo.svg" width="120" alt="RoboCode Logo"/>
+</p>
+
 # RoboCode VS Code Extension
 
-A comprehensive VS Code extension for KUKA KRL (KUKA Robot Language) programming with advanced folding, syntax highlighting, and code intelligence features.
+<p align="center">
+  <b>Universal Industrial Robot Programming Suite</b><br/>
+  <svg width="18" height="18"><rect width="18" height="18" fill="#f90"/></svg> <b>KUKA</b>
+  <svg width="18" height="18"><rect width="18" height="18" fill="#e00"/></svg> <b>ABB</b>
+  <svg width="18" height="18"><rect width="18" height="18" fill="#ff0"/></svg> <b>FANUC</b>
+  <svg width="18" height="18"><rect width="18" height="18" fill="#0af"/></svg> <b>CNC</b>
+  <svg width="18" height="18"><rect width="18" height="18" fill="#0c0"/></svg> <b>RoboDK</b>
+</p>
 
-## Features
+---
 
-- **Syntax Highlighting**: Full KRL (KUKA Robot Language) syntax highlighting for `.src` and `.dat` files
-- **Advanced Folding System**: 
-  - Custom `;FOLD` / `;ENDFOLD` regions with smart hiding behavior
-  - FOLD markers hidden when collapsed, showing only content
-  - Special comments (`;%{PE}`, `;%{h}...`, `DEFAULT ;%{PE}`) are automatically hidden
-  - Click anywhere on FOLD/ENDFOLD lines to toggle folding
-  - Navigate between matching FOLD/ENDFOLD pairs
-- **Code Intelligence**:
-  - IntelliSense completion for KUKA commands (PTP, LIN, etc.)
-  - Semantic token highlighting for enhanced syntax coloring
-  - Document outline with proper symbol ranges
-  - Diagnostics for unmatched FOLD/ENDFOLD pairs
-- **Code Formatting**:
-  - Assignment alignment (`=` signs lined up)
-  - Automatic keyword uppercasing
-  - Configurable formatting options
-- **Snippets**: Quick insertion templates for common KRL constructs
-- **Robot Management**: Connection and program upload commands (planned)
+## <svg width="18" height="18"><rect width="18" height="18" fill="#4CAF50"/></svg> Features
+
+- <b>Multi-Brand Support:</b> KUKA, ABB, FANUC, CNC, RoboDK, Dobot, and more
+- <b>Live Robot Connection:</b> Connect, monitor, and control robots via TCP/IP (simulated protocol)
+- <b>Program Upload:</b> Upload and manage robot programs directly from VS Code
+- <b>Syntax Highlighting:</b> Full support for KRL, RAPID, FANUC AS, G-code, and more
+- <b>Box-Style Folding:</b> Clean, modern code folding with visual boxes for FOLD regions
+- <b>IntelliSense:</b> Smart code completion for robot commands and parameters
+- <b>Diagnostics:</b> Real-time error checking for unmatched FOLD/ENDFOLD, syntax, and connection issues
+- <b>Document Outline:</b> Symbol navigation for DEF, PROC, FOLD, and more
+- <b>Snippets:</b> Quick templates for common robot tasks
+- <b>Simulated Communication Protocols:</b> C++ and Python examples for robot connectivity
+- <b>Project Templates:</b> Start new robot projects for any supported brand
+- <b>Debugging:</b> Step through robot code with breakpoints and variable inspection (simulated)
+- <b>Real-Time Status:</b> Monitor robot state and connection health in the status bar
+- <b>Customizable UI:</b> Theme-aware, configurable folding colors and display options
+
+## Box-Style Folding
+
+The extension provides a **clean, minimal box-style folding system** that makes code structure visually clear:
+
+### Visual Design
+- **Simple Borders**: Clean borders around fold content (no background highlights)
+- **Subtle Markers**: FOLD/ENDFOLD lines are slightly dimmed but remain readable
+- **Chat-Box Style**: Similar to modern chat applications - clean and unobtrusive
+- **Nested Support**: Multiple levels of nesting with consistent styling
+
+### Customization
+- **Configurable Colors**: Set your preferred border color via `robocode.display.boxFoldColor`
+- **Toggle Box Mode**: Enable/disable via `robocode.display.boxFolds` setting
+- **Minimal Design**: Focus on code readability, not decorative elements
 
 ## Folding Features
 
@@ -49,6 +74,8 @@ This extension contributes the following settings:
 
 * `robocode.format.alignAssignments`: Enable/disable alignment of assignment operators (default: true)
 * `robocode.format.uppercaseKeywords`: Enable/disable automatic uppercasing of KRL keywords (default: true)
+* `robocode.display.boxFolds`: Enable/disable box-style visual folding (default: true)
+* `robocode.display.boxFoldColor`: Color for fold box borders and accents (default: "#4CAF50")
 
 ## Keyboard Shortcuts
 

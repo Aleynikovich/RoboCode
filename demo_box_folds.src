@@ -1,0 +1,112 @@
+&ACCESS RVP
+&REL 1
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vorgabe
+&PARAM EDITMASK = *
+
+DEF demo_box_folds()
+
+; FOLD Initialization
+  ; Setup robot and workspace
+  DECL POS home_pos, work_pos, safe_pos
+  DECL INT counter, max_cycles
+  DECL BOOL safety_ok
+  
+  ; Initialize positions
+  home_pos = {X 600.0, Y 0.0, Z 600.0, A 0.0, B 0.0, C 0.0}
+  work_pos = {X 400.0, Y 200.0, Z 150.0, A 0.0, B 90.0, C 0.0}
+  safe_pos = {X 500.0, Y 0.0, Z 400.0, A 0.0, B 45.0, C 0.0}
+  
+  max_cycles = 10
+  counter = 0
+; ENDFOLD
+
+; FOLD Main Processing Loop
+  ; Execute main production cycle
+  FOR counter = 1 TO max_cycles
+    
+    ; FOLD Safety Check
+      ; Verify all safety conditions
+      safety_ok = TRUE
+      IF $IN[10] == FALSE THEN
+        safety_ok = FALSE
+        HALT
+      ENDIF
+      
+      IF $IN[11] == FALSE THEN
+        safety_ok = FALSE
+        HALT
+      ENDIF
+    ; ENDFOLD
+    
+    ; FOLD Movement Sequence VEL=75% DEFAULT
+      ; Execute pick and place operation
+      
+      ; FOLD Approach Pick Position
+        PTP safe_pos VEL=100 % DEFAULT
+        PTP work_pos VEL=50 % FINE
+        LIN work_pos VEL=10 % FINE
+      ; ENDFOLD
+      
+      ; FOLD Gripper Operations
+        ; Close gripper and secure part
+        $OUT[1] = TRUE
+        WAIT SEC 0.5
+        
+        ; Verify grip
+        IF $IN[20] == FALSE THEN
+          $OUT[1] = FALSE
+          HALT
+        ENDIF
+      ; ENDFOLD
+      
+      ; FOLD Transport Movement
+        ; Move to place position
+        LIN {X 400.0, Y 200.0, Z 250.0, A 0.0, B 90.0, C 0.0} VEL=20 % FINE
+        PTP safe_pos VEL=75 % DEFAULT
+        PTP {X 400.0, Y -200.0, Z 250.0, A 0.0, B 90.0, C 0.0} VEL=50 % FINE
+        LIN {X 400.0, Y -200.0, Z 150.0, A 0.0, B 90.0, C 0.0} VEL=10 % FINE
+      ; ENDFOLD
+      
+      ; FOLD Release Part
+        ; Open gripper and release
+        $OUT[1] = FALSE
+        WAIT SEC 0.3
+        
+        ; Retract safely
+        LIN {X 400.0, Y -200.0, Z 250.0, A 0.0, B 90.0, C 0.0} VEL=20 % FINE
+      ; ENDFOLD
+      
+    ; ENDFOLD
+    
+    ; FOLD Status Update
+      ; Update cycle counter and status
+      WAIT SEC 0.1
+      
+      ; Check if final cycle
+      IF counter == max_cycles THEN
+        ; Signal completion
+        $OUT[5] = TRUE
+        WAIT SEC 1.0
+        $OUT[5] = FALSE
+      ENDIF
+    ; ENDFOLD
+    
+  ENDFOR
+; ENDFOLD
+
+; FOLD Cleanup and Return Home
+  ; Final operations and safe shutdown
+  PTP safe_pos VEL=100 % DEFAULT
+  PTP home_pos VEL=100 % DEFAULT
+  
+  ; Reset all outputs
+  $OUT[1] = FALSE
+  $OUT[5] = FALSE
+  
+  ; Signal program complete
+  $OUT[10] = TRUE
+  WAIT SEC 2.0
+  $OUT[10] = FALSE
+; ENDFOLD
+
+END

@@ -278,12 +278,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// Use simple styling if box folds are disabled
 			return {
 				header: vscode.window.createTextEditorDecorationType({
-					fontWeight: 'bold',
-					color: boxColor
+					fontWeight: 'bold'
 				}),
-				content: vscode.window.createTextEditorDecorationType({
-					backgroundColor: 'rgba(128, 128, 128, 0.05)'
-				}),
+				content: vscode.window.createTextEditorDecorationType({}),
 				footer: vscode.window.createTextEditorDecorationType({
 					opacity: '0.6',
 					fontStyle: 'italic'
@@ -291,40 +288,27 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 		}
 
-		// Box-style decorations
+		// Clean box-style decorations - just borders, no background highlights
 		return {
 			header: vscode.window.createTextEditorDecorationType({
-				backgroundColor: `${boxColor}20`, // 20 = 12.5% opacity in hex
-				fontWeight: 'bold',
-				color: boxColor.replace('#', '#2E'), // Darker version
-				border: `2px solid ${boxColor}`,
-				borderRadius: '6px 6px 0 0',
-				before: {
-					contentText: '📦 ',
-					color: boxColor,
-					fontWeight: 'bold'
-				},
-				after: {
-					contentText: ' ▼',
-					color: boxColor,
-					margin: '0 0 0 8px'
-				}
+				// Just dim the FOLD line slightly, no fancy styling
+				opacity: '0.8',
+				fontStyle: 'italic'
 			}),
-			content: vscode.window.createTextEditorDecorationType({
-				backgroundColor: `${boxColor}0D`, // 0D = 5% opacity in hex
-				outline: `2px solid ${boxColor}`
-			}),
+			   // Decorations for simulating a single box using before/after and left/right borders
+			   contentFirst: vscode.window.createTextEditorDecorationType({
+				   border: `2px solid ${boxColor}`
+			   }),
+			   contentMiddle: vscode.window.createTextEditorDecorationType({
+				   border: `2px solid ${boxColor}`
+			   }),
+			   contentLast: vscode.window.createTextEditorDecorationType({
+				   border: `2px solid ${boxColor}`
+			   }),
 			footer: vscode.window.createTextEditorDecorationType({
-				backgroundColor: `${boxColor}1A`, // 1A = 10% opacity in hex
-				color: '#666666',
-				fontStyle: 'italic',
-				opacity: '0.7',
-				border: `2px solid ${boxColor}`,
-				borderRadius: '0 0 6px 6px',
-				before: {
-					contentText: '└─ ',
-					color: boxColor
-				}
+				// Just dim the ENDFOLD line
+				opacity: '0.6',
+				fontStyle: 'italic'
 			})
 		};
 	}
@@ -337,10 +321,12 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		const hiddenCommentRanges: vscode.Range[] = [];
 		const foldHeaderRanges: vscode.Range[] = [];
-		const foldContentRanges: vscode.Range[] = [];
+	const foldContentFirstRanges: vscode.Range[] = [];
+	const foldContentMiddleRanges: vscode.Range[] = [];
+	const foldContentLastRanges: vscode.Range[] = [];
 		const foldFooterRanges: vscode.Range[] = [];
 
-		// Find all FOLD regions and their ranges
+		// Find all FOLD regions and create simple box borders around content only
 		const foldRegions: { start: number; end: number; level: number; title: string }[] = [];
 		const stack: { line: number; level: number; title: string }[] = [];
 		let currentLevel = 0;
@@ -375,29 +361,45 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 
-		// Apply box decorations to each fold region
+		// Simulate a single box border using first/middle/last line decorations
 		for (const region of foldRegions) {
-			const startLine = editor.document.lineAt(region.start);
-			const endLine = editor.document.lineAt(region.end);
-			
-			// FOLD header line (top of box with title and icon)
-			foldHeaderRanges.push(new vscode.Range(region.start, 0, region.start, startLine.text.length));
-			
-			// Content lines (body of the box)
-			for (let i = region.start + 1; i < region.end; i++) {
-				const contentLine = editor.document.lineAt(i);
-				foldContentRanges.push(new vscode.Range(i, 0, i, contentLine.text.length));
+			// Dim the FOLD header line
+			foldHeaderRanges.push(new vscode.Range(region.start, 0, region.start, editor.document.lineAt(region.start).text.length));
+
+			// Only box the content between FOLD/ENDFOLD
+			if (region.end > region.start + 1) {
+				const contentStart = region.start + 1;
+				const contentEnd = region.end - 1;
+				if (contentEnd >= contentStart) {
+					for (let line = contentStart; line <= contentEnd; line++) {
+						const lineLength = editor.document.lineAt(line).text.length;
+						const range = new vscode.Range(line, 0, line, lineLength);
+						if (line === contentStart && line === contentEnd) {
+							// Only one line in block: top and bottom borders
+							foldContentFirstRanges.push(range);
+							foldContentLastRanges.push(range);
+						} else if (line === contentStart) {
+							foldContentFirstRanges.push(range);
+						} else if (line === contentEnd) {
+							foldContentLastRanges.push(range);
+						} else {
+							foldContentMiddleRanges.push(range);
+						}
+					}
+				}
 			}
-			
-			// ENDFOLD line (footer of the box)
-			foldFooterRanges.push(new vscode.Range(region.end, 0, region.end, endLine.text.length));
+
+			// Dim the ENDFOLD footer line
+			foldFooterRanges.push(new vscode.Range(region.end, 0, region.end, editor.document.lineAt(region.end).text.length));
 		}
 		
 		// Apply decorations
-		editor.setDecorations(hiddenCommentDecoration!, hiddenCommentRanges);
-		editor.setDecorations(decorations.header, foldHeaderRanges);
-		editor.setDecorations(decorations.content, foldContentRanges);
-		editor.setDecorations(decorations.footer, foldFooterRanges);
+	editor.setDecorations(hiddenCommentDecoration!, hiddenCommentRanges);
+	editor.setDecorations(decorations.header!, foldHeaderRanges);
+	editor.setDecorations(decorations.contentFirst!, foldContentFirstRanges);
+	editor.setDecorations(decorations.contentMiddle!, foldContentMiddleRanges);
+	editor.setDecorations(decorations.contentLast!, foldContentLastRanges);
+	editor.setDecorations(decorations.footer!, foldFooterRanges);
 	}	// Folding Range Provider with custom display behavior
 	const foldingProvider = vscode.languages.registerFoldingRangeProvider('krl', {
 		provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {
