@@ -11,7 +11,9 @@
     "Debuggers",
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [
@@ -100,7 +102,68 @@
           "group": "robot"
         }
       ]
-    }
+    },
+    "debuggers": [
+      {
+        "type": "robocode",
+        "label": "RoboCode Robot Program",
+        "languages": ["krl", "rapid", "as"],
+        "configurationAttributes": {
+          "launch": {
+            "required": ["program"],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Path to the robot program file (.src/.dat/.mod/.ls)",
+                "default": "${file}"
+              },
+              "robotType": {
+                "type": "string",
+                "description": "Robot controller type",
+                "enum": ["KUKA", "ABB", "FANUC", "DOBOT"],
+                "default": "KUKA"
+              },
+              "ipAddress": {
+                "type": "string",
+                "description": "Target robot IP (simulation if 127.0.0.1)",
+                "default": "127.0.0.1"
+              },
+              "cycleDelayMs": {
+                "type": "number",
+                "description": "Delay in ms between executing lines",
+                "default": 150
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "robocode",
+            "request": "launch",
+            "name": "Run Robot Program (Simulated)",
+            "program": "${file}",
+            "robotType": "KUKA",
+            "ipAddress": "127.0.0.1",
+            "cycleDelayMs": 150
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "RoboCode: Simulate current robot file",
+            "description": "Run the currently open robot program in the RoboCode simulator",
+            "body": {
+              "type": "robocode",
+              "request": "launch",
+              "name": "RoboCode Simulate ${fileBasename}",
+              "program": "${file}",
+              "robotType": "KUKA",
+              "ipAddress": "127.0.0.1",
+              "cycleDelayMs": 100
+            }
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -127,6 +190,8 @@
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.2",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "vscode-debugadapter": "^1.63.0",
+    "vscode-debugprotocol": "^1.63.0"
   }
 }
