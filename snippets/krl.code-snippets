@@ -1,0 +1,39 @@
+{
+  "KRL DEF Template": {
+    "prefix": "kdef",
+    "description": "Insert a KUKA DEF program skeleton",
+    "body": [
+      "DEF ${1:ProgramName}()",
+      "; FOLD Initialization",
+      "  DECL INT i",
+      "; ENDFOLD",
+      "",
+      "; FOLD Main Logic",
+      "  FOR i = 1 TO 3",
+      "    ; TODO: Add motions",
+      "  ENDFOR",
+      "; ENDFOLD",
+      "",
+      "END"
+    ]
+  },
+  "KRL DEFDAT Template": {
+    "prefix": "kdat",
+    "description": "Insert a KUKA DEFDAT data module skeleton",
+    "body": [
+      "DEFDAT ${1:DataModule}",
+      "DECL POS P1={X 0,Y 0,Z 0,A 0,B 0,C 0}",
+      "DECL INT Counter=0",
+      "ENDDAT"
+    ]
+  },
+  "KRL FOLD Region": {
+    "prefix": "kfold",
+    "description": "Insert a fold region wrapper",
+    "body": [
+      "; FOLD ${1:Description}",
+      "${2:code}",
+      "; ENDFOLD"
+    ]
+  }
+}

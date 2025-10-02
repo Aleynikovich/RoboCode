@@ -1,7 +1,7 @@
 {
   "name": "robocode",
   "displayName": "RoboCode",
-  "description": "VS Code extension for managing and coding industrial robots like KUKA, FANUC, ABB, Dobot and others",
+  "description": "VS Code extension focused on KUKA KRL (.src/.dat) programming",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.104.0"
@@ -12,7 +12,7 @@
     "Other"
   ],
   "activationEvents": [
-    "*"
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -22,18 +22,6 @@
         "aliases": ["KUKA Robot Language", "krl"],
         "extensions": [".src", ".dat"],
         "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "rapid",
-        "aliases": ["ABB RAPID", "rapid"],
-        "extensions": [".mod", ".sys"],
-        "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "as",
-        "aliases": ["FANUC AS", "as"],
-        "extensions": [".ls", ".tp"],
-        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
@@ -41,16 +29,6 @@
         "language": "krl",
         "scopeName": "source.krl",
         "path": "./syntaxes/krl.tmLanguage.json"
-      },
-      {
-        "language": "rapid",
-        "scopeName": "source.rapid",
-        "path": "./syntaxes/rapid.tmLanguage.json"
-      },
-      {
-        "language": "as",
-        "scopeName": "source.as",
-        "path": "./syntaxes/as.tmLanguage.json"
       }
     ],
     "commands": [
@@ -72,6 +50,16 @@
       {
         "command": "robocode.uploadProgram",
         "title": "Upload Program to Robot",
+        "category": "RoboCode"
+      },
+      {
+        "command": "robocode.wrapFoldRegion",
+        "title": "Wrap Selection in FOLD Region",
+        "category": "RoboCode"
+      },
+      {
+        "command": "robocode.insertFoldTemplate",
+        "title": "Insert FOLD Template",
         "category": "RoboCode"
       }
     ],
@@ -97,73 +85,34 @@
     "menus": {
       "explorer/context": [
         {
-          "when": "resourceExtname == .src || resourceExtname == .dat || resourceExtname == .mod || resourceExtname == .sys || resourceExtname == .ls || resourceExtname == .tp",
+          "when": "resourceExtname == .src || resourceExtname == .dat",
           "command": "robocode.uploadProgram",
           "group": "robot"
         }
       ]
     },
-    "debuggers": [
+    "snippets": [
       {
-        "type": "robocode",
-        "label": "RoboCode Robot Program",
-        "languages": ["krl", "rapid", "as"],
-        "configurationAttributes": {
-          "launch": {
-            "required": ["program"],
-            "properties": {
-              "program": {
-                "type": "string",
-                "description": "Path to the robot program file (.src/.dat/.mod/.ls)",
-                "default": "${file}"
-              },
-              "robotType": {
-                "type": "string",
-                "description": "Robot controller type",
-                "enum": ["KUKA", "ABB", "FANUC", "DOBOT"],
-                "default": "KUKA"
-              },
-              "ipAddress": {
-                "type": "string",
-                "description": "Target robot IP (simulation if 127.0.0.1)",
-                "default": "127.0.0.1"
-              },
-              "cycleDelayMs": {
-                "type": "number",
-                "description": "Delay in ms between executing lines",
-                "default": 150
-              }
-            }
-          }
-        },
-        "initialConfigurations": [
-          {
-            "type": "robocode",
-            "request": "launch",
-            "name": "Run Robot Program (Simulated)",
-            "program": "${file}",
-            "robotType": "KUKA",
-            "ipAddress": "127.0.0.1",
-            "cycleDelayMs": 150
-          }
-        ],
-        "configurationSnippets": [
-          {
-            "label": "RoboCode: Simulate current robot file",
-            "description": "Run the currently open robot program in the RoboCode simulator",
-            "body": {
-              "type": "robocode",
-              "request": "launch",
-              "name": "RoboCode Simulate ${fileBasename}",
-              "program": "${file}",
-              "robotType": "KUKA",
-              "ipAddress": "127.0.0.1",
-              "cycleDelayMs": 100
-            }
-          }
-        ]
+        "language": "krl",
+        "path": "./snippets/krl.code-snippets"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "RoboCode KRL",
+      "properties": {
+        "robocode.format.alignAssignments": {
+          "type": "boolean",
+            "default": true,
+            "description": "Align '=' signs in simple assignment statements."
+        },
+        "robocode.format.uppercaseKeywords": {
+          "type": "boolean",
+          "default": true,
+          "description": "Uppercase KRL keywords and motion/motion-related commands (DEF, END, PTP, LIN, IF, FOR, etc.)."
+        }
+      }
+    },
+    "debuggers": []
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
