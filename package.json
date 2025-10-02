@@ -58,10 +58,17 @@
         "category": "RoboCode"
       },
       {
-        "command": "robocode.insertFoldTemplate",
-        "title": "Insert FOLD Template",
-        "category": "RoboCode"
-      }
+            "command": "robocode.insertFoldTemplate",
+            "title": "Insert FOLD Template"
+        },
+        {
+            "command": "robocode.goToMatchingFold",
+            "title": "Go to Matching FOLD/ENDFOLD"
+        },
+        {
+            "command": "robocode.toggleFoldOnLine",
+            "title": "Toggle Fold on Current Line"
+        }
     ],
     "views": {
       "explorer": [
@@ -91,6 +98,18 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "robocode.goToMatchingFold",
+        "key": "ctrl+shift+]",
+        "when": "editorTextFocus && editorLangId == krl"
+      },
+      {
+        "command": "robocode.toggleFoldOnLine",
+        "key": "ctrl+shift+f",
+        "when": "editorTextFocus && editorLangId == krl"
+      }
+    ],
     "snippets": [
       {
         "language": "krl",

@@ -20,6 +20,7 @@
         "markers": {
             "start": "^\\s*;\\s*(FOLD|#region)\\b",
             "end": "^\\s*;\\s*(ENDFOLD|#endregion)\\b"
-        }
+        },
+        "offSide": true
     }
 }

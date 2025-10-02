@@ -163,6 +163,69 @@ export function activate(context: vscode.ExtensionContext) {
 		editor.insertSnippet(new vscode.SnippetString(`; FOLD ${name}\n$0\n; ENDFOLD`));
 	});
 
+	// Command: Go to matching FOLD/ENDFOLD
+	const goToMatchingFold = vscode.commands.registerCommand('robocode.goToMatchingFold', () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor || editor.document.languageId !== 'krl') { return; }
+		
+		const position = editor.selection.active;
+		const lineText = editor.document.lineAt(position.line).text;
+		
+		if (FOLD_START.test(lineText)) {
+			// Find matching ENDFOLD
+			const stack: number[] = [];
+			for (let i = position.line; i < editor.document.lineCount; i++) {
+				const text = editor.document.lineAt(i).text;
+				if (FOLD_START.test(text)) {
+					stack.push(i);
+				} else if (FOLD_END.test(text)) {
+					stack.pop();
+					if (stack.length === 0) {
+						const newPosition = new vscode.Position(i, 0);
+						editor.selection = new vscode.Selection(newPosition, newPosition);
+						editor.revealRange(new vscode.Range(newPosition, newPosition));
+						return;
+					}
+				}
+			}
+		} else if (FOLD_END.test(lineText)) {
+			// Find matching FOLD
+			const stack: number[] = [];
+			for (let i = position.line; i >= 0; i--) {
+				const text = editor.document.lineAt(i).text;
+				if (FOLD_END.test(text)) {
+					stack.push(i);
+				} else if (FOLD_START.test(text)) {
+					stack.pop();
+					if (stack.length === 0) {
+						const newPosition = new vscode.Position(i, 0);
+						editor.selection = new vscode.Selection(newPosition, newPosition);
+						editor.revealRange(new vscode.Range(newPosition, newPosition));
+						return;
+					}
+				}
+			}
+		}
+	});
+
+	// Command: Toggle fold on current line
+	const toggleFoldOnLine = vscode.commands.registerCommand('robocode.toggleFoldOnLine', () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor || editor.document.languageId !== 'krl') { return; }
+		
+		const position = editor.selection.active;
+		const lineText = editor.document.lineAt(position.line).text;
+		
+		if (FOLD_START.test(lineText)) {
+			vscode.commands.executeCommand('editor.fold');
+		} else if (FOLD_END.test(lineText)) {
+			// Navigate to matching FOLD first, then toggle
+			vscode.commands.executeCommand('robocode.goToMatchingFold').then(() => {
+				vscode.commands.executeCommand('editor.fold');
+			});
+		}
+	});
+
 	// Diagnostics for unmatched FOLD/ENDFOLD
 	function validateFolds(doc: vscode.TextDocument) {
 		if (doc.languageId !== 'krl') { return; }
@@ -195,16 +258,91 @@ export function activate(context: vscode.ExtensionContext) {
 			fontStyle: 'italic'
 		});
 	}
+
+	// Decorations for hiding special comments and FOLD markers
+	let hiddenCommentDecoration: vscode.TextEditorDecorationType | undefined;
+	let foldMarkerDecoration: vscode.TextEditorDecorationType | undefined;
+	
+	if (!hiddenCommentDecoration) {
+		hiddenCommentDecoration = vscode.window.createTextEditorDecorationType({
+			opacity: '0',
+			textDecoration: 'none; font-size: 0px; line-height: 0;'
+		});
+	}
+	
+	if (!foldMarkerDecoration) {
+		foldMarkerDecoration = vscode.window.createTextEditorDecorationType({
+			opacity: '0',
+			textDecoration: 'none; font-size: 0px;'
+		});
+	}
+
+	// Folding Range Provider to hide FOLD markers when collapsed
+	const foldingProvider = vscode.languages.registerFoldingRangeProvider('krl', {
+		provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {
+			const ranges: vscode.FoldingRange[] = [];
+			const stack: { line: number; kind?: vscode.FoldingRangeKind }[] = [];
+			
+			for (let i = 0; i < document.lineCount; i++) {
+				const lineText = document.lineAt(i).text;
+				
+				if (FOLD_START.test(lineText)) {
+					stack.push({ line: i, kind: vscode.FoldingRangeKind.Region });
+				} else if (FOLD_END.test(lineText)) {
+					const start = stack.pop();
+					if (start) {
+						// Create range that hides the start and end markers
+						ranges.push(new vscode.FoldingRange(start.line, i, start.kind));
+					}
+				}
+			}
+			
+			return ranges;
+		}
+	});
+
 	function refreshEnfoldDecorations(editor: vscode.TextEditor) {
 		if (editor.document.languageId !== 'krl') { return; }
-		const ranges: vscode.Range[] = [];
+		
+		const enfoldRanges: vscode.Range[] = [];
+		const hiddenCommentRanges: vscode.Range[] = [];
+		const foldMarkerRanges: vscode.Range[] = [];
+		
+		// Get folded ranges to determine which FOLD markers to hide
+		const foldedRanges = editor.visibleRanges;
+		const isLineFolded = (lineNumber: number): boolean => {
+			return foldedRanges.some(range => 
+				lineNumber < range.start.line || lineNumber > range.end.line
+			);
+		};
+		
 		for (let i = 0; i < editor.document.lineCount; i++) {
 			const line = editor.document.lineAt(i);
-			if (FOLD_END.test(line.text)) {
-				ranges.push(new vscode.Range(i, 0, i, line.text.length));
+			const text = line.text;
+			
+			// Hide ENDFOLD lines (dim them)
+			if (FOLD_END.test(text)) {
+				enfoldRanges.push(new vscode.Range(i, 0, i, text.length));
+			}
+			
+			// Hide special comments: ;%{PE}, ;%{h}..., DEFAULT ;%{PE}
+			if (/;\s*%\{[^}]*\}/.test(text) || /DEFAULT\s*;\s*%\{PE\}/.test(text)) {
+				hiddenCommentRanges.push(new vscode.Range(i, 0, i, text.length));
+			}
+			
+			// Hide FOLD markers when their region is collapsed
+			if (FOLD_START.test(text) && isLineFolded(i + 1)) {
+				// Only hide the FOLD marker part, keep the description
+				const match = text.match(/^(\s*;\s*FOLD\s*)(.*)/i);
+				if (match) {
+					foldMarkerRanges.push(new vscode.Range(i, 0, i, match[1].length));
+				}
 			}
 		}
-		editor.setDecorations(enfoldDecoration!, ranges);
+		
+		editor.setDecorations(enfoldDecoration!, enfoldRanges);
+		editor.setDecorations(hiddenCommentDecoration!, hiddenCommentRanges);
+		editor.setDecorations(foldMarkerDecoration!, foldMarkerRanges);
 	}
 
 	// Outline (DocumentSymbol) provider for FOLD regions & DEF
@@ -352,6 +490,30 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Add click handler for line-based folding
+	const clickHandler = vscode.window.onDidChangeTextEditorSelection(e => {
+		if (!e.textEditor || e.textEditor.document.languageId !== 'krl') { return; }
+		
+		// Check if this was a line click (selection covers entire line)
+		const selection = e.selections[0];
+		if (selection && !selection.isEmpty) {
+			const line = e.textEditor.document.lineAt(selection.start.line);
+			if (selection.start.character === 0 && selection.end.character === line.text.length) {
+				const lineText = line.text;
+				if (FOLD_START.test(lineText) || FOLD_END.test(lineText)) {
+					vscode.commands.executeCommand('robocode.toggleFoldOnLine');
+				}
+			}
+		}
+	});
+
+	// Listen for fold state changes to update decorations
+	const foldChangeHandler = vscode.window.onDidChangeTextEditorVisibleRanges(e => {
+		if (e.textEditor.document.languageId === 'krl') {
+			refreshEnfoldDecorations(e.textEditor);
+		}
+	});
+
 	// Push all subscriptions
 	context.subscriptions.push(
 		connectRobotCommand,
@@ -362,9 +524,14 @@ export function activate(context: vscode.ExtensionContext) {
 		autoFold,
 		wrapFoldCommand,
 		insertFoldTemplate,
-		symbolProvider
-		,semanticProvider
-		,formattingProvider
+		goToMatchingFold,
+		toggleFoldOnLine,
+		symbolProvider,
+		semanticProvider,
+		formattingProvider,
+		foldingProvider,
+		clickHandler,
+		foldChangeHandler
 	);
 }
 
